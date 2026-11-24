@@ -184,6 +184,14 @@ React inputs, navigation, loading/errors, status badges aur timeline render kart
 
 **Sir ka follow-up:** “Browser refresh se request disappear?” — Nahi, MySQL se reload hoti hai; session expired ho toh pehle login karna padega.
 
+## 23. Collection Framework ka actual use kahan hai?
+
+`ExpenseService.listVisibleRequests()` aur `getHistory()` multiple database records ko `List` mein lete hain. Har method `new ArrayList<>()` banata hai aur enhanced `for` loop se safe DTO objects add karta hai. `List` interface hai aur `ArrayList` uska concrete implementation; order repository query decide karti hai aur loop usse preserve karta hai. Ye actual request list aur history screen ke liye hai, sirf unused collection example nahi hai.
+
+**Code:** `service/ExpenseService.java`: `listVisibleRequests()`, `getHistory()`.
+
+**Sir ka follow-up:** “`List<ExpenseResponseDto> result = new ArrayList<>()` mein do types kyun?” — Variable interface type ka hai, object ArrayList ka hai; `.add()`, `.size()` aur iteration jaise List operations use kar sakte hain.
+
 ## Five-minute demo script
 
 | Time | Action | Bolne ke liye line |

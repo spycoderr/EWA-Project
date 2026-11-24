@@ -183,6 +183,42 @@ class ExpenseServiceTest {
     }
 
     @Test
+    void requestListReturnsSafeDtosInRepositoryOrder() {
+        ExpenseRequest newest = pending(true, RequestStatus.PENDING_FINANCE);
+        ExpenseRequest older = pending(false, RequestStatus.APPROVED);
+        ReflectionTestUtils.setField(older, "id", 99L);
+        when(requests.findByCompanyIdOrderByCreatedAtDescIdDesc(1L)).thenReturn(List.of(newest, older));
+
+        List<ExpenseResponseDto> result = service.listVisibleRequests(manager);
+
+        assertEquals(2, result.size());
+        assertEquals(100L, result.get(0).id());
+        assertEquals(RequestStatus.PENDING_FINANCE, result.get(0).status());
+        assertEquals(99L, result.get(1).id());
+        assertEquals(employee.getName(), result.get(1).createdByName());
+    }
+
+    @Test
+    void historyListPreservesEventOrderActorAndComment() {
+        ExpenseRequest request = pending(false, RequestStatus.APPROVED);
+        LocalDateTime submittedAt = LocalDateTime.of(2026, 11, 24, 10, 0);
+        LocalDateTime approvedAt = submittedAt.plusMinutes(5);
+        when(requests.findByIdAndCompanyId(100L, 1L)).thenReturn(Optional.of(request));
+        when(actions.findByRequestIdOrderByActedAtAscIdAsc(100L)).thenReturn(List.of(
+                new ApprovalAction(request, employee, ApprovalActionType.SUBMITTED, "", submittedAt),
+                new ApprovalAction(request, manager, ApprovalActionType.MANAGER_APPROVED, "Checked", approvedAt)));
+
+        List<HistoryResponseDto> result = service.getHistory(employee, 100L);
+
+        assertEquals(2, result.size());
+        assertEquals(ApprovalActionType.SUBMITTED, result.get(0).action());
+        assertEquals(submittedAt, result.get(0).actedAt());
+        assertEquals(manager.getName(), result.get(1).actorName());
+        assertEquals("Checked", result.get(1).comment());
+        assertEquals(approvedAt, result.get(1).actedAt());
+    }
+
+    @Test
     void thresholdChangeOnlyAffectsNewRequests() {
         ApprovalRule rule = new ApprovalRule(alpha, new BigDecimal("5000"));
         prepareCreate(rule);

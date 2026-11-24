@@ -132,3 +132,18 @@ MAVEN_USER_HOME=/private/tmp/java-lab-wrapper \
 ```
 
 The backend run used the same environment with `DB_URL=jdbc:mysql://localhost:3307/expense_approval_lab` and goal `spring-boot:run`. Frontend commands actually run were `npm install --cache /private/tmp/java-lab-npm-cache`, `npm run dev` and `npm run build`.
+
+
+## Submission preparation — 24 November 2026
+
+- Reviewed the supplied college report format: architecture/UML, classes/interfaces, exception handling, collections, database connectivity and observable outputs. It specifies report sections, not additional enterprise features. No report or report diagrams were authored in this pass.
+- Simplified `ExpenseService` decisions to explicit `if/else`; converted request/history DTO list building to `List`, `ArrayList` and ordinary enhanced `for` loops. Existing roles, workflow and data scope remain the same.
+- Added clear Bean Validation messages for title, amount, description, email/password, threshold and comment; central handler returns those messages. The creation success message now avoids asserting a stage that may change after a later reload.
+- Added two list/history service cases and six real MVC validation/error-response cases. PASS: 52 Java cases, 0 failures/errors/skips on Java 21.0.13.1. PASS: frontend build.
+- README now maps actual Java concepts to source. VIVA_GUIDE adds a concrete List/ArrayList question with actual method references; repository interfaces remain the real interface example, with no artificial pattern classes.
+- The old `/private/tmp` tools/database were no longer available. Restored official local JDK 21 and MySQL under ignored `.tools/`; a fresh lab database contains only demo accounts/rules and seven explicit rehearsal requests. Binaries, caches, logs and data are not committed.
+- Added `scripts/start-backend.sh`, a small optional startup helper for the prepared Mac. It can use explicit external DB environment settings; it never wipes data, installs tools or adds application features.
+- PASS live MySQL/Vite: eight sessions, approval/rejection flows, readable errors, company/role/final-state guards, saved route snapshots and history. Alpha is back at 5000; Beta remains 10000.
+- PASS cold restart: stopped this project's DB/backend and used the helper to restart; all seven requests/history persisted and 2 companies/8 users/2 rules were retained.
+- PASS laptop visual check at 1366×900 (Login and approved request/history), invalid-login message and successful login; saved `docs/screenshots/approved-desktop.png`. Reset the viewport afterward. This closes the earlier laptop-width inspection gap. Windows and production deployment remain outside this verification.
+- The UML diagrams and report layout are for the subsequent report-writing step; no additional Java functionality is required to describe the current system truthfully.

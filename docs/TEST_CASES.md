@@ -1,6 +1,6 @@
 # Test cases and actual results
 
-Verified on **28 October 2026 (Asia/Kolkata)** using Java 21.0.13, Spring Boot 3.5.16, MySQL 8.4.13 and Node 24.22.0. HTTP checks used real MySQL and Vite's `/api` proxy. Temporary tools/data live under `/private/tmp`; project defaults still target localhost MySQL port 3306.
+Latest verification: **24 November 2026 (Asia/Kolkata)** using Java 21.0.13.1, Spring Boot 3.5.16, MySQL 8.4.13 and Node 24.22.0. Current local demo tools/data are in Git-ignored `.tools/`; project defaults still target localhost MySQL port 3306. The original scenario matrix also retains detailed checks from 28 October; the fresh rehearsal results are listed below.
 
 ## Automated tests
 
@@ -8,11 +8,12 @@ From `backend/`, run `./mvnw test` (or `mvn test`). No database is needed for th
 
 | Test class | Executed cases | Actual result |
 | --- | ---: | --- |
-| `ExpenseServiceTest` | 24 | PASS |
+| `ExpenseServiceTest` | 26 | PASS |
 | `RuleServiceTest` | 4 | PASS |
 | `AuthControllerTest` | 4 | PASS |
 | `InputValidationTest` | 12 | PASS |
-| **Total** | **44** | **0 failures, 0 errors, 0 skipped** |
+| `ApiValidationTest` | 6 | PASS |
+| **Total** | **52** | **0 failures, 0 errors, 0 skipped** |
 
 Parameterized inputs count as separate executed cases. Auth tests use standalone MockMvc with real BCrypt and mocked persistence; service tests use Mockito repositories. These are not full database integration tests. Persistence, schema and row-lock behavior were separately checked against the running MySQL app.
 
@@ -65,3 +66,31 @@ MAVEN_USER_HOME=/private/tmp/java-lab-wrapper \
 ```
 
 For the real running backend, the same environment plus `DB_URL=jdbc:mysql://localhost:3307/expense_approval_lab` was used with `spring-boot:run`. Normal users should follow README and use their own locally installed MySQL/JDK; temporary tool paths are verification details, not project requirements.
+
+
+## Rehearsal on 24 November 2026
+
+- PASS: 52 focused Java tests, including two list/history order-and-content cases and six readable HTTP validation error cases.
+- PASS: frontend `npm run build`; no dependency or database schema changes.
+- PASS: real MySQL through Vite — all eight login/me/logout flows, low/high approvals, Manager and Finance rejection, blank rejection reason, role/final-stage/company guards, invalid title/amount/threshold messages, action history, and unchanged old/new approval route snapshots.
+- PASS: seven explicitly labelled rehearsal requests retained after stopping both DB/backend and starting with `bash scripts/start-backend.sh`; counts stayed 2 companies, 8 users, 2 rules. Alpha threshold restored to 5000; Beta remained 10000.
+- PASS: laptop layout inspected at 1366×900 for Login and approved request detail/history; invalid login error and successful sign-in checked in browser. Temporary viewport override was reset. Proof image: `docs/screenshots/approved-desktop.png`.
+- The 28 October concurrency check was not rerun on 24 November; its row-lock implementation is unchanged. Windows was not tested. No project report was created.
+
+Current workspace commands:
+
+```bash
+bash scripts/start-backend.sh
+# another terminal:
+cd frontend
+npm run dev
+```
+
+Automated test command with the prepared local tools:
+
+```bash
+cd backend
+JAVA_HOME="$PWD/../.tools/jdk21/Contents/Home" \
+MAVEN_USER_HOME="$PWD/../.tools/maven" \
+./mvnw -B -ntp "-Dmaven.repo.local=$PWD/../.tools/m2" test
+```

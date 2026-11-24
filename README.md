@@ -40,6 +40,19 @@ React page → fetch /api/... → @RestController → @Service → JpaRepository
 
 The review query holds one database row lock until the transaction finishes. Two simultaneous clicks cannot both approve the same step. No additional concurrency framework or workflow framework is used.
 
+## Java concepts used in the project
+
+| Concept | Actual example |
+| --- | --- |
+| Classes and encapsulation | `ExpenseRequest` has private fields and a controlled `updateStatus()` method |
+| Interfaces | The five repository interfaces extend `JpaRepository`; Spring Data supplies implementations |
+| Enums and decision making | `Role`, `RequestStatus`, `ApprovalActionType`, and the `if/else` decisions in `ExpenseService.review()` |
+| Collections | `List` variables hold expenses/history; `ArrayList` and enhanced `for` loops build safe response lists |
+| Exception handling | `ApiException`, `ApiExceptionHandler`, and Bean Validation return readable errors |
+| Database connectivity | JPA/Hibernate uses the MySQL JDBC driver; relationships map to five SQL tables |
+
+In `ExpenseService.listVisibleRequests()` and `getHistory()`, `List` is the collection interface and `ArrayList` is the concrete implementation. The loops convert entity objects to DTOs while keeping the query's display order. No extra collection types or interfaces are added just to demonstrate a syllabus topic.
+
 ## Project layout
 
 ```text
@@ -132,6 +145,12 @@ spring.jpa.show-sql=false
 If MySQL uses a different port or database, set `DB_URL`, e.g. `export DB_URL='jdbc:mysql://localhost:3307/expense_approval_lab'`. Environment variables are read by Spring; `.env` files are **not loaded automatically**. Do not commit a personal database password. `application-example.properties` is a reference, not an additional hidden setup step.
 
 On Windows use `mvnw.cmd spring-boot:run` and set environment variables in your terminal (PowerShell: `$env:DB_PASSWORD='YOUR_LOCAL_MYSQL_PASSWORD'`).
+
+### Starting again in this Mac workspace
+
+For the submission rehearsal, optional official JDK 21 and MySQL binaries/data were restored under the Git-ignored `.tools/` folder instead of `/private/tmp`. On this already-prepared Mac, run `bash scripts/start-backend.sh` from the project root, then `cd frontend && npm run dev` in another terminal. The helper uses local MySQL on loopback port 3307 and preserves existing records. It does not download/install tools or reset data.
+
+The `.tools/` binaries and database are not uploaded to GitHub. On another machine, follow the normal prerequisites and database setup above; the helper can also use an explicitly configured `DB_URL`, `DB_USERNAME` and `DB_PASSWORD`.
 
 If startup reports a communications-link/dialect error, check that MySQL is running, the database exists and credentials/port are correct. If Vite cannot reach `/api`, check the backend startup log and port 8080. Stop each server with Ctrl+C.
 

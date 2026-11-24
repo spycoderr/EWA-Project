@@ -5,6 +5,7 @@ import com.example.expenseapproval.exception.ApiException;
 import com.example.expenseapproval.model.*;
 import com.example.expenseapproval.repository.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -39,10 +40,19 @@ public class ExpenseService {
 
     @Transactional(readOnly = true)
     public List<ExpenseResponseDto> listVisibleRequests(AppUser user) {
-        List<ExpenseRequest> visible = user.getRole() == Role.EMPLOYEE
-                ? requests.findByCompanyIdAndCreatedByIdOrderByCreatedAtDescIdDesc(user.getCompany().getId(), user.getId())
-                : requests.findByCompanyIdOrderByCreatedAtDescIdDesc(user.getCompany().getId());
-        return visible.stream().map(ExpenseResponseDto::from).toList();
+        List<ExpenseRequest> visible;
+        if (user.getRole() == Role.EMPLOYEE) {
+            visible = requests.findByCompanyIdAndCreatedByIdOrderByCreatedAtDescIdDesc(
+                    user.getCompany().getId(), user.getId());
+        } else {
+            visible = requests.findByCompanyIdOrderByCreatedAtDescIdDesc(user.getCompany().getId());
+        }
+
+        List<ExpenseResponseDto> result = new ArrayList<>();
+        for (ExpenseRequest request : visible) {
+            result.add(ExpenseResponseDto.from(request));
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -53,7 +63,12 @@ public class ExpenseService {
     @Transactional(readOnly = true)
     public List<HistoryResponseDto> getHistory(AppUser user, Long id) {
         visibleRequest(user, id);
-        return actions.findByRequestIdOrderByActedAtAscIdAsc(id).stream().map(HistoryResponseDto::from).toList();
+        List<ApprovalAction> history = actions.findByRequestIdOrderByActedAtAscIdAsc(id);
+        List<HistoryResponseDto> result = new ArrayList<>();
+        for (ApprovalAction action : history) {
+            result.add(HistoryResponseDto.from(action));
+        }
+        return result;
     }
 
     @Transactional
@@ -85,16 +100,28 @@ public class ExpenseService {
             if (request.getStatus() != RequestStatus.PENDING_MANAGER) {
                 throw new ApiException(HttpStatus.CONFLICT, "This request is not waiting for manager approval.");
             }
-            nextStatus = approved
-                    ? (request.isRequiresFinance() ? RequestStatus.PENDING_FINANCE : RequestStatus.APPROVED)
-                    : RequestStatus.REJECTED;
-            action = approved ? ApprovalActionType.MANAGER_APPROVED : ApprovalActionType.MANAGER_REJECTED;
+            if (!approved) {
+                nextStatus = RequestStatus.REJECTED;
+                action = ApprovalActionType.MANAGER_REJECTED;
+            } else {
+                if (request.isRequiresFinance()) {
+                    nextStatus = RequestStatus.PENDING_FINANCE;
+                } else {
+                    nextStatus = RequestStatus.APPROVED;
+                }
+                action = ApprovalActionType.MANAGER_APPROVED;
+            }
         } else {
             if (request.getStatus() != RequestStatus.PENDING_FINANCE) {
                 throw new ApiException(HttpStatus.CONFLICT, "This request is not waiting for finance approval.");
             }
-            nextStatus = approved ? RequestStatus.APPROVED : RequestStatus.REJECTED;
-            action = approved ? ApprovalActionType.FINANCE_APPROVED : ApprovalActionType.FINANCE_REJECTED;
+            if (approved) {
+                nextStatus = RequestStatus.APPROVED;
+                action = ApprovalActionType.FINANCE_APPROVED;
+            } else {
+                nextStatus = RequestStatus.REJECTED;
+                action = ApprovalActionType.FINANCE_REJECTED;
+            }
         }
         request.updateStatus(nextStatus);
         requests.save(request);

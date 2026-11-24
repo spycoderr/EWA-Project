@@ -21,7 +21,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
         var error = exception.getBindingResult().getFieldErrors().getFirst();
-        return ResponseEntity.badRequest().body(new ErrorResponse(error.getField() + ": " + error.getDefaultMessage()));
+        return ResponseEntity.badRequest().body(new ErrorResponse(error.getDefaultMessage()));
     }
 
     @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})

@@ -15,7 +15,7 @@ export default function NewRequestPage() {
     setBusy(true);
     try {
       const request = await api('/requests', { method: 'POST', body: JSON.stringify({ title, amount, description }) });
-      navigate(`/requests/${request.id}`, { state: { message: 'Expense submitted successfully. Your request is waiting for Manager approval.' } });
+      navigate(`/requests/${request.id}`, { state: { message: 'Expense submitted successfully.' } });
     } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
   return <>
